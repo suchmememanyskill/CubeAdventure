@@ -165,7 +165,7 @@ void startL1(){
 	renderbox(getspriteseason("grass2x1", season), 100, 190, 1, 1, 0, 2, 1);
 	renderbox(getspriteseason("grass2x1", season), 200, 190, 1, 1, 0, 3, 1);
 	renderbox(getspriteseason("grass2x1", season), 300, 190, 1, 1, 0, 4, 1);
-	renderbox(getspriteseason("grass2x1", season), 400, 190, 1, 1, 0, 5, 1);
+	renderbox(getspriteseason("ground2x1", season), 400, 190, 1, 1, 0, 5, 1);
 	renderbox(getspriteseason("grass2x1", season), 500, 190, 1, 1, 0, 6, 1);
 	renderbox(getspriteseason("grass2x1", season), 600, 190, 1, 1, 0, 7, 1);
 	renderbox(getspriteseason("grass2x1", season), 700, 190, 1, 1, 0, 8, 1);

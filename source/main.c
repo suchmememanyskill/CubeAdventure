@@ -71,8 +71,9 @@ int main(int argc, char **argv)
 		}
 
 		if (makeselection == true && inLSelect == true){
-			C2D_SpriteSheetFree(spritesheet);
+			//C2D_SpriteSheetFree(spritesheet); //important when all of the levels work!
 			if (selection == 1) {
+			C2D_SpriteSheetFree(spritesheet);
 			consoleInit(GFX_BOTTOM, NULL);
 			startL1();
 			goto start; }
