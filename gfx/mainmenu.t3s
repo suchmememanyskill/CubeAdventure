@@ -1,0 +1,6 @@
+--atlas -f rgba8888 -z auto
+fade.png
+title.png
+main.png
+levels.png
+arrow.png
