@@ -14,17 +14,17 @@ int IsInsideRange(int location, int difference, int referencepoint){
 
 int IsInsideBox(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh, int LocX, int LocY){
 	int result = 0;
-	if (IsInsideRange(LocX + 20, boxhorzlength + 20, topleftX) == 1 && IsInsideRange(LocY + 20, boxvertlengh + 20, topleftY) == 1) result = 1;
+	if (IsInsideRange(LocX + 20, boxhorzlength + 20, topleftX) == 1 && IsInsideRange(LocY + 40, boxvertlengh + 40, topleftY) == 1) result = 1;
 	return result;
 }
 
 int boxcoll(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh, int LocX, int LocY){
 		int result = 0;
 		if (IsInsideBox(topleftX, topleftY, boxhorzlength, boxvertlengh, LocX, LocY) == 1){
-			if (IsInsideRange(LocY + 20, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) {
+			if (IsInsideRange(LocY + 40, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) {
 			result = 1;
-			if (IsInsideRange(LocY + 19, 10, topleftY) == 1) result = 6;
-			if (IsInsideRange(LocY + 15, 10, topleftY) == 1) result = 7; } //up
+			if (IsInsideRange(LocY + 39, 10, topleftY) == 1) result = 6;
+			if (IsInsideRange(LocY + 35, 10, topleftY) == 1) result = 7; } //up
 			else if (IsInsideRange(LocX, 5, topleftX + boxhorzlength - 4) == 1) result = 2; //right
 			else if (IsInsideRange(LocY, 10, topleftY + boxvertlengh - 10) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) result = 3; //down
 			else if (IsInsideRange(LocX + 20, 5, topleftX) == 1) result = 4; //left 

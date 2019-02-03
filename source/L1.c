@@ -11,22 +11,7 @@
 #include "sprites.h"
 #include "math.h"
 #include "music.h"
-
-Thread threadHandle;
-Handle threadRequest;
-
-#define STACKSIZE (4 * 1024)
-
-volatile bool runThread = true;
-
-void threadMain(void *arg) {
-
-	while(runThread) {
-		svcWaitSynchronization(threadRequest, U64_MAX);
-		svcClearEvent(threadRequest);
-		advance();
-	}
-}
+#include "thread.h"
 
 bool grounded = false, test = false, LRpress = false, music = true;
 int offsetX = 0, offsetY = 0, i = 0, season = 2, musicdelay = 0;
@@ -38,8 +23,9 @@ int spriteY[20];
 int scaleX[20];
 int scaleY[20];
 int loaded[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int rotation[20];
 
-size_t renderseason(char* boxtype, int seasons){
+size_t getspriteseason(char* boxtype, int seasons){
 	size_t temp = sprites_devbox_idx;
 
 	// season 1 = spring
@@ -90,12 +76,13 @@ void actboxcoll(int result){
 	if (result == 7) { grounded = true; Vmomentum = 0; posY = posY - 5; }
 }
 
-void renderbox(size_t images, int locX, int locY, int scale_X, int scale_Y, int slot, int load){
+void renderbox(size_t images, int locX, int locY, int scale_X, int scale_Y, int rotationR, int slot, int load){
 spriteimg[slot] = images;
 spriteX[slot] = locX;
 spriteY[slot] = locY;
 scaleX[slot] = scale_X;
 scaleY[slot] = scale_Y;
+rotation[slot] = rotationR;
 loaded[slot] = load;
 }
 
@@ -105,14 +92,7 @@ void startL1(){
 	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	startSong("romfs:/arcade_thequest.mp3");
 
-	//renderbox(renderseason("devbox", season), 50, 200, 10, 2, 1, 1);
-	
-	svcCreateEvent(&threadRequest,0);
-	threadHandle = threadCreate(threadMain, 0, STACKSIZE, 0x3f, -2, true);
-
-
-	renderbox(renderseason("devbox", season), 200, 200, 1, 1, 3, 0);
-	renderbox(renderseason("devbox", season), 200, 100, 1, 1, 4, 0);
+	//renderbox(getspriteseason("devbox", season), 50, 200, 10, 2, 1, 1);
 
 	u32 backgroundColor = C2D_Color32f(0,0,0,1);
     C2D_SpriteSheet spritesheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
@@ -142,7 +122,7 @@ void startL1(){
     		else music = true;
     }
 
-    if (music) svcSignalEvent(threadRequest);
+    if (music) RunThread();
 
     if (season != 4){
 
@@ -160,19 +140,16 @@ void startL1(){
     if (keysmove() == 3 || keysmove() == 2 || keysmove() == 4) Xmomentum = Xmomentum + 0.3f, LRpress = true;
     if (keysmove() == 7 || keysmove() == 6 || keysmove() == 8) Xmomentum = Xmomentum - 0.3f, LRpress = true;
 
-    if (LRpress == true && Xmomentum > 4.0f) Xmomentum = Xmomentum - 0.35f;
-    else if (LRpress == true && Xmomentum < -4.0f) Xmomentum = Xmomentum + 0.35f;
+    if (LRpress == true && Xmomentum > 4.0f && grounded == true) Xmomentum = Xmomentum - 0.35f;
+    else if (LRpress == true && Xmomentum > 2.5f && grounded == false) Xmomentum = Xmomentum - 0.35f;
+    else if (LRpress == true && Xmomentum < -4.0f && grounded == true) Xmomentum = Xmomentum + 0.35f;
+    else if (LRpress == true && Xmomentum < -2.5f && grounded == false) Xmomentum = Xmomentum + 0.35f;
     else if (Xmomentum > 0.7f && LRpress == false) Xmomentum = Xmomentum - 0.5f;
     else if (Xmomentum < -0.7f && LRpress == false) Xmomentum = Xmomentum + 0.5f;
     else if (Xmomentum > -0.7f && Xmomentum < 0.7f && LRpress == false) Xmomentum = 0; }
 
-
-
-
     posX = posX + Xmomentum;
     LRpress = false;
-
-
 
     if (grounded == false) Vmomentum = Vmomentum + 0.15f;
     if (grounded == true && Vmomentum > 0) Vmomentum = 0;
@@ -184,23 +161,23 @@ void startL1(){
 
 	actboxcoll(boxcoll(0 - offsetX, 190 - offsetY, 800, 50, posX, posY));
 	actboxcoll(boxcoll(400 - offsetX, 165 - offsetY, 100, 25, posX, posY));
-	renderbox(renderseason("grass2x1", season), 0, 190, 1, 1, 1, 1);
-	renderbox(renderseason("grass2x1", season), 100, 190, 1, 1, 2, 1);
-	renderbox(renderseason("grass2x1", season), 200, 190, 1, 1, 3, 1);
-	renderbox(renderseason("grass2x1", season), 300, 190, 1, 1, 4, 1);
-	renderbox(renderseason("grass2x1", season), 400, 190, 1, 1, 5, 1);
-	renderbox(renderseason("grass2x1", season), 500, 190, 1, 1, 6, 1);
-	renderbox(renderseason("grass2x1", season), 600, 190, 1, 1, 7, 1);
-	renderbox(renderseason("grass2x1", season), 700, 190, 1, 1, 8, 1);
-	renderbox(renderseason("ground2x1", season), 0, 215, 1, 1, 9, 1);
-	renderbox(renderseason("ground2x1", season), 100, 215, 1, 1, 10, 1);
-	renderbox(renderseason("ground2x1", season), 200, 215, 1, 1, 11, 1);
-	renderbox(renderseason("ground2x1", season), 300, 215, 1, 1, 12, 1);
-	renderbox(renderseason("ground2x1", season), 400, 215, 1, 1, 13, 1);
-	renderbox(renderseason("ground2x1", season), 500, 215, 1, 1, 14, 1);
-	renderbox(renderseason("ground2x1", season), 600, 215, 1, 1, 15, 1);
-	renderbox(renderseason("ground2x1", season), 700, 215, 1, 1, 16, 1);
-	renderbox(renderseason("grass2x1", season), 400, 165, 1, 1, 17, 1);
+	renderbox(getspriteseason("grass2x1", season), 0, 190, 1, 1, 0, 1, 1);
+	renderbox(getspriteseason("grass2x1", season), 100, 190, 1, 1, 0, 2, 1);
+	renderbox(getspriteseason("grass2x1", season), 200, 190, 1, 1, 0, 3, 1);
+	renderbox(getspriteseason("grass2x1", season), 300, 190, 1, 1, 0, 4, 1);
+	renderbox(getspriteseason("grass2x1", season), 400, 190, 1, 1, 0, 5, 1);
+	renderbox(getspriteseason("grass2x1", season), 500, 190, 1, 1, 0, 6, 1);
+	renderbox(getspriteseason("grass2x1", season), 600, 190, 1, 1, 0, 7, 1);
+	renderbox(getspriteseason("grass2x1", season), 700, 190, 1, 1, 0, 8, 1);
+	renderbox(getspriteseason("ground2x1", season), 0, 215, 1, 1, 0, 9, 1);
+	renderbox(getspriteseason("ground2x1", season), 100, 215, 1, 1, 0, 10, 1);
+	renderbox(getspriteseason("ground2x1", season), 200, 215, 1, 1, 0, 11, 1);
+	renderbox(getspriteseason("ground2x1", season), 300, 215, 1, 1, 0, 12, 1);
+	renderbox(getspriteseason("ground2x1", season), 400, 215, 1, 1, 0, 13, 1);
+	renderbox(getspriteseason("ground2x1", season), 500, 215, 1, 1, 0, 14, 1);
+	renderbox(getspriteseason("ground2x1", season), 600, 215, 1, 1, 0, 15, 1);
+	renderbox(getspriteseason("ground2x1", season), 700, 215, 1, 1, 0, 16, 1);
+	renderbox(getspriteseason("grass2x1", season), 400, 165, 1, 1, 0, 17, 1);
 
 	//printf("test");
 
@@ -209,19 +186,15 @@ void startL1(){
     C2D_TargetClear(top, backgroundColor);
     C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 0 - (offsetX / 3), 0, 0.5f, NULL, 1, 1);
     C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 589 - (offsetX / 3), 0, 0.5f, NULL, 1, 1);
-    C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_devblock_idx), posX, posY, 0.5f, NULL, 1, 1);
+    C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_devblock_idx), posX, posY, 0.5f, NULL, 1, 2);
 
     for (i = 0; i < 21; i++){
-    if (loaded[i] == 1) C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, spriteimg[i]), spriteX[i] - offsetX, spriteY[i] - offsetY, 0.5f, NULL, scaleX[i], scaleY[i]);	
+    if (loaded[i] == 1) {
+    	if (rotation[i] != 0) C2D_DrawImageAtRotated(C2D_SpriteSheetGetImage(spritesheet, spriteimg[i]), spriteX[i] - offsetX, spriteY[i] - offsetY, 0.5f, rotation[i], NULL, scaleX[i], scaleY[i]);	
+    	else C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, spriteimg[i]), spriteX[i] - offsetX, spriteY[i] - offsetY, 0.5f, NULL, scaleX[i], scaleY[i]); }	
     }
-
 	C3D_FrameEnd(0);
 	 }
 	 C2D_SpriteSheetFree(spritesheet);
 	 exitSong();
-	 runThread = false;
-	 svcSignalEvent(threadRequest);
-	 threadJoin(threadHandle, U64_MAX);
-	 svcCloseHandle(threadRequest);
-
 }
