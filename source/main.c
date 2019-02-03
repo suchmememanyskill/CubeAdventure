@@ -20,13 +20,17 @@ size_t sprite_grass = sprites_devbox_idx;
 
 int main(int argc, char **argv)
 {
+	MakeThread();
+	start:
 	gfxInitDefault();
 	consoleInit(GFX_BOTTOM, NULL);
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
     C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
     C2D_Prepare();
-    MakeThread();
     C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+
+    printf("Hello world, pls no crash");
+    makeselection = false;
 
     u32 backgroundColor = C2D_Color32f(0,0,0,1);
     romfsInit();
@@ -67,9 +71,11 @@ int main(int argc, char **argv)
 		}
 
 		if (makeselection == true && inLSelect == true){
+			C2D_SpriteSheetFree(spritesheet);
 			if (selection == 1) {
 			consoleInit(GFX_BOTTOM, NULL);
-			startL1(); }
+			startL1();
+			goto start; }
 			if (selection == 2) {
 			consoleInit(GFX_BOTTOM, NULL);
 			printf("L2 Not implemented yet. Go yell at meme or something"); }
@@ -141,7 +147,7 @@ int main(int argc, char **argv)
     	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_ground), 300 - scrolloffset, 215, 0.5f, NULL, 1, 1);
     	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_ground), 400 - scrolloffset, 215, 0.5f, NULL, 1, 1);
     	C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_fade_idx), 0, 0, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_title_idx), 20, 25, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_title_idx), 20, 20, 0.5f, NULL, 1, 1);
     	//85, 28
 
     	C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_main_idx), 20, 45, 0.5f, NULL, 1, 1);
@@ -160,6 +166,5 @@ int main(int argc, char **argv)
 	gfxExit();
 	romfsExit();
 	ExitThread();
-	gfxExit();
 	return 0;
 }

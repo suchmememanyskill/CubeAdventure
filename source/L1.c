@@ -197,4 +197,7 @@ void startL1(){
 	 }
 	 C2D_SpriteSheetFree(spritesheet);
 	 exitSong();
+	 C2D_Fini();
+	 C3D_Fini();
+	 gfxExit();
 }
