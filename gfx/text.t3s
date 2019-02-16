@@ -1,0 +1,11 @@
+--atlas -f rgba8888 -z auto
+textbox.png
+move.png
+escapeblocktext.png
+escapetext.png
+falltext.png
+springtext.png
+wintertext.png
+seasonstext.png
+seasons2text.png
+laddertext.png
