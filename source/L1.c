@@ -17,9 +17,9 @@
 
 //Define variables ------------------------------------------------------------
 
-bool grounded = false, test = false, LRpress = false, music = true, debug = false, flipdebug = false, pausegame = false, death = false, quit = false, yeet = false, cameratrigger1 = true;
+bool groundedN = true, test = false, music = true, debug = false, flipdebug = false, pausegame = false, death = false, quit = false, yeet = false, cameratrigger1 = true, aapress = false;
 int i = 0, season = 2, debugdelay = 0, pauseselection = 1, arrowoffset = 0, watertimer = 0, tempvert = 0, temphorz = 0, cameratriggeroffset1 = 0;
-float posX = 200, posY = 150, Vmomentum = 0, Hmomentum = 0, Xmomentum  = 0, offsetY = 0, offsetX = 0, yeettimer = 30;
+float posX = 200, posY = 150, offsetY = 0, offsetX = 0, yeettimer = 30;
 
 size_t spriteimg[40];
 int spriteX[40];
@@ -44,15 +44,19 @@ void settingsL1(int Set){
 	if (Set == 4) music = true;
 }
 
+// Temp
+
+void Ajustoffset(char* vartoajust, float offsetofvar){
+	if (strcmp(vartoajust, "X") == 0) offsetX = offsetX + offsetofvar;
+	if (strcmp(vartoajust, "Y") == 0) offsetY = offsetY + offsetofvar;
+	if (strcmp(vartoajust, "pY") == 0) posY = posY + offsetofvar;
+	if (strcmp(vartoajust, "pX") == 0) posX = posX + offsetofvar;
+}
+
 //Define texture use ---------------------------------------------------
 
 size_t getspriteseason(char* boxtype, int seasons){
 	size_t temp = sprites_devbox_idx;
-
-	// season 1 = spring > jump boost, slower movement
-	// season 2 = summer > nothing
-	// season 3 = fall > gliding, slightly slower movement
-	// season 4 = winter > faster, needs slight jump buff
 
 	if (strcmp(boxtype, "devbox") == 0){
 		if (yeet){
@@ -104,17 +108,6 @@ size_t getspriteseason(char* boxtype, int seasons){
 	return temp;
 }
 
-// Define Collision rules (also see math.c) -----------------------------------
-
-void actboxcoll(int result){
-	if (result == 1) grounded = true, Vmomentum = 0;
-	if (result == 2) posX = posX + 0.65f, Xmomentum = 0;
-	if (result == 3) Vmomentum = 0;
-	if (result == 4) posX = posX - 0.65f, Xmomentum = 0;
-	if (result == 5) posY = posY - 5;
-	if (result == 6) { grounded = true; Vmomentum = 0; posY = posY - 1; }
-	if (result == 7) { grounded = true; Vmomentum = 0; posY = posY - 5; }
-}
 
 // Put stuff in variables for future rendering -------------------------------
 
@@ -133,17 +126,7 @@ else if(didvaluechange[slot] == 1) return;
 else loaded[slot] = 0;
 }
 
-// Ladder code ----------------------------------------------------
 
-void ladder(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh, int LocX, int LocY){
-if (IsInsideBox(topleftX, topleftY, boxhorzlength, boxvertlengh, LocX, LocY) != 0){
-	if (IsInsideBox(topleftX, topleftY - 38, boxhorzlength, 7, LocX, LocY) != 0) grounded = true;
-	else Vmomentum = 0;
-	if (keysmove() == 1) { offsetY = offsetY - 2; }
-	if (keysmove() == 5 && offsetY < -1) { offsetY = offsetY + 2; }
-	else if (keysmove() == 5 && offsetY > -1) { posY = posY + 1; }
-}
-}
 
 void startL1(){
 	// Start code ---------------------------------------------------------------------
@@ -157,7 +140,7 @@ void startL1(){
     begin:
     consoleInit(GFX_BOTTOM, NULL);
     offsetX = 0, offsetY = 0, i = 0, season = 2, debugdelay = 0, pauseselection = 1;
-    posX = 200, posY = 130, Vmomentum = 0, Hmomentum = 0, Xmomentum  = 0, yeettimer = 30, cameratriggeroffset1 = 0;
+    posX = 200, posY = 130, yeettimer = 30, cameratriggeroffset1 = 0;
     pausegame = false, death = false, quit = false, yeet = false, cameratrigger1 = false;
 
 
@@ -169,34 +152,15 @@ void startL1(){
 	if (kDown & KEY_START) pausegame = true;
 
 	//Vertical movement code + offsetcode ------------------------------------------------------------
-   	
-    if (posX > 270 && Xmomentum > 0) { posX = posX - Xmomentum; offsetX = offsetX + Xmomentum;}
-    if (posX < 80 && offsetX > 0 && Xmomentum < 0) { posX = posX - Xmomentum; offsetX = offsetX + Xmomentum;}
 
-    if (offsetY > 0) offsetY = 0;
-
-    if (posY < 50 && Vmomentum < 0 ) { posY = posY - Vmomentum; offsetY = offsetY + Vmomentum;}
-    else if (posY < 50 && Vmomentum == 0) { posY = posY + 1; offsetY = offsetY - 1;}
-    if (posY > 160 && offsetY < 0 && Vmomentum > 0) { posY = posY - Vmomentum; offsetY = offsetY + Vmomentum;}
-	else if (posY > 160 && offsetY < 0 && Vmomentum == 0) { posY = posY - 1; offsetY = offsetY + 1;}
-
-    if (grounded == true && kDown & KEY_A && season == 4) Vmomentum = Vmomentum - 3.0f;
-    else if (grounded == true && kDown & KEY_A && season == 1) Vmomentum = Vmomentum - 5.0f;
-    else if (grounded == true && kDown & KEY_A) Vmomentum = Vmomentum - 4.0f;
-    else if ((kHeld & KEY_A || keysmove() == 1 || keysmove() == 2 || keysmove() == 8) && season == 3 && Vmomentum > 0)  Vmomentum = Vmomentum - 0.12f;
 
     if (kDown & KEY_L) season = season - 1;
     if (kDown & KEY_R) season = season + 1;
     if (season == 0) season = 4;
     if (season == 5) season = 1;
 
-    if (kDown & KEY_Y) {
-    	if (music) music = false;
-    		else music = true;
-    }
-
     //Fill the screen with useless debug info -----------------------------------------------
-
+/*
     debugdelay = debugdelay + 1;
     if (debugdelay == 100 && debug == true) {
     	if (flipdebug == false){
@@ -211,64 +175,30 @@ void startL1(){
 	flipdebug = false; } } }
 	
 	watertimer = watertimer + 7;
-	if (debug == true) printf("\x1b[5;1HPos: %f %f  \nOffset: %f %f  \nMomentum: %f %f  ", posX, posY, offsetX, offsetY, Xmomentum, Vmomentum);
-	if (watertimer > 300) watertimer = 0;
+	if (debug == true) printf("\x1b[5;1HPos: %f %f  \nOffset: %f %f  \nMomentum: %f %f  ", posX, posY, offsetX, offsetY, Xmomentum);
+	if (watertimer > 300) watertimer = 0; */
 
     if (music == true) RunThread();
 
-    if (season != 4){
+    posX = posX + calcHmomentum(posX, offsetX, season);
 
-    //Part of horizontal movement system ----------------------------
+	ladder(1015 - offsetX, 40 - offsetY, 20, 113, posX, posY, offsetY);
 
-    if (keysmove() == 3 || keysmove() == 2 || keysmove() == 4) Xmomentum = Xmomentum + 0.6f, LRpress = true;
-    if (keysmove() == 7 || keysmove() == 6 || keysmove() == 8) Xmomentum = Xmomentum - 0.6f, LRpress = true;
+	if (kDown & KEY_A) aapress = 1;
+	posY = posY + calcVmomentum(posY, offsetY, season, aapress);
+	aapress = 0;
 
-    if (LRpress == true && Xmomentum > 2.0f && season == 1) Xmomentum = Xmomentum - 0.65f;
-    else if (LRpress == true && Xmomentum < -2.0f && season == 1) Xmomentum = Xmomentum + 0.65f;
-    else if (LRpress == true && Xmomentum > 2.8f && season == 2) Xmomentum = Xmomentum - 0.65f;
-    else if (LRpress == true && Xmomentum < -2.8f && season == 2) Xmomentum = Xmomentum + 0.65f;
-    else if (LRpress == true && Xmomentum > 2.4f && season == 3) Xmomentum = Xmomentum - 0.65f;
-    else if (LRpress == true && Xmomentum < -2.4f && season == 3) Xmomentum = Xmomentum + 0.65f;
-    else if (Xmomentum > 0.7f && LRpress == false) Xmomentum = Xmomentum - 0.5f;
-    else if (Xmomentum < -0.7f && LRpress == false) Xmomentum = Xmomentum + 0.5f;
-    else if (Xmomentum > -0.7f && Xmomentum < 0.7f && LRpress == false) Xmomentum = 0; }
-
-    if (season == 4){
-
-    if (keysmove() == 3 || keysmove() == 2 || keysmove() == 4) Xmomentum = Xmomentum + 0.3f, LRpress = true;
-    if (keysmove() == 7 || keysmove() == 6 || keysmove() == 8) Xmomentum = Xmomentum - 0.3f, LRpress = true;
-
-    if (LRpress == true && Xmomentum > 3.75f && grounded == true) Xmomentum = Xmomentum - 0.35f;
-    else if (LRpress == true && Xmomentum > 3.0f && grounded == false) Xmomentum = Xmomentum - 0.35f;
-    else if (LRpress == true && Xmomentum < -3.75f && grounded == true) Xmomentum = Xmomentum + 0.35f;
-    else if (LRpress == true && Xmomentum < -3.0f && grounded == false) Xmomentum = Xmomentum + 0.35f;
-    else if (Xmomentum > 0.7f && LRpress == false) Xmomentum = Xmomentum - 0.5f;
-    else if (Xmomentum < -0.7f && LRpress == false) Xmomentum = Xmomentum + 0.5f;
-    else if (Xmomentum > -0.7f && Xmomentum < 0.7f && LRpress == false) Xmomentum = 0; }
-
-    posX = posX + Xmomentum;
-    LRpress = false;
-
-    if (grounded == false) Vmomentum = Vmomentum + 0.15f;
-    if (grounded == true && Vmomentum > 0) Vmomentum = 0;
-	grounded = false;
-
-	ladder(1015 - offsetX, 40 - offsetY, 20, 150, posX, posY);
-
-	posY = posY + Vmomentum;
-
-	if (posX < 0) posX = 0;
 
 	//Set collision --------------------------------------------------
 
-	actboxcoll(boxcoll(0 - offsetX, 190 - offsetY, 650, 50, posX, posY));
-	actboxcoll(boxcoll(700 - offsetX, 190 - offsetY, 850, 50, posX, posY));
-	actboxcoll(boxcoll(1050 - offsetX, 65 - offsetY, 200, 400, posX, posY));
-	if (season == 4) actboxcoll(boxcoll(1550 - offsetX, 197 - offsetY, 300, 50, posX, posY));
-	actboxcoll(boxcoll(1850 - offsetX, 190 - offsetY, 300, 50, posX, posY));
-	actboxcoll(boxcoll(2150 - offsetX, 115 - offsetY, 200, 300, posX, posY));
-	actboxcoll(boxcoll(2550 - offsetX, 190 - offsetY, 200, 100, posX, posY));
-	if (boxcoll(2275 - offsetX, 40 - offsetY, 200, 100, posX, posY) != 0 && cameratriggeroffset1 < 75) {
+	boxcoll(0 - offsetX, 190 - offsetY, 650, 50, posX, posY);
+	boxcoll(700 - offsetX, 190 - offsetY, 850, 50, posX, posY);
+	boxcoll(1050 - offsetX, 65 - offsetY, 200, 400, posX, posY);
+	if (season == 4) boxcoll(1550 - offsetX, 197 - offsetY, 300, 50, posX, posY);
+	boxcoll(1850 - offsetX, 190 - offsetY, 300, 50, posX, posY);
+	boxcoll(2150 - offsetX, 115 - offsetY, 200, 300, posX, posY);
+	boxcoll(2550 - offsetX, 190 - offsetY, 200, 100, posX, posY);
+	if (IsInsideBox(2275 - offsetX, 40 - offsetY, 200, 100, posX, posY) != 0 && cameratriggeroffset1 < 75) {
 		cameratrigger1 = true;
 	}
 
@@ -281,7 +211,7 @@ void startL1(){
 		posX = posX - 3;
 	}
 
-	if (boxcoll(2700 - offsetX, 120 - offsetY, 50, 50, posX, posY) != 0 && yeet == false){ 
+	if (IsInsideBox(2700 - offsetX, 120 - offsetY, 50, 50, posX, posY) != 0 && yeet == false){ 
 		yeet = true;
 		for (i = 0; i < 10; i++) { textboxX[i] = 5000; }
 		textboxX[7] = 2400;
@@ -290,9 +220,9 @@ void startL1(){
 
 
 	if (yeet == true){
-		actboxcoll(boxcoll(2350 - offsetX, 190 - offsetY, 200, 100, posX, posY));
-		actboxcoll(boxcoll(1250 - offsetX, 140 - offsetY, 50, 50, posX, posY));
-		if (boxcoll(50 - offsetX, 120 - offsetY, 50, 50, posX, posY) != 0) quit = true;
+		boxcoll(2350 - offsetX, 190 - offsetY, 200, 100, posX, posY);
+		boxcoll(1250 - offsetX, 140 - offsetY, 50, 50, posX, posY);
+		if (IsInsideBox(50 - offsetX, 120 - offsetY, 50, 50, posX, posY) != 0) quit = true;
 	}
 
 	//EndRunCode -----------------------------------------------------
@@ -410,23 +340,18 @@ void startL1(){
 
 	if (yeet == false) renderbox(sprites_orb_idx, 2700, 120, 1, 1, 0, 6);
 
-
-
-	//reminder to code in rushexit, and define summer and fall
-
-
 	//Render frame -------------------------------------------
+
+    tempvert = offsetY;
+    temphorz = offsetX;
 
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     C2D_SceneBegin(top);
     C2D_TargetClear(top, backgroundColor);
-    if (offsetX / 3 < 590) C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 0 - (offsetX / 3), 0, 0.5f, NULL, 1, 1);
-    if (offsetX / 3 > 189 && offsetX / 3 < 1178) C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 589 - (offsetX / 3), 0, 0.5f, NULL, 1, 1);
-    if (offsetX / 3 > 689) C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 1178 - (offsetX / 3), 0, 0.5f, NULL, 1, 1);
+    if (offsetX / 3 < 590) C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 0 - (temphorz / 3), 0, 0.5f, NULL, 1, 1);
+    if (offsetX / 3 > 189 && offsetX / 3 < 1178) C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 589 - (temphorz / 3), 0, 0.5f, NULL, 1, 1);
+    if (offsetX / 3 > 689) C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 1178 - (temphorz / 3), 0, 0.5f, NULL, 1, 1);
     C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_devblock_idx), posX, posY, 0.5f, NULL, 1, 2);
-
-    tempvert = offsetY;
-    temphorz = offsetX;
 
 
     for (i = 0; i < 41; i++){
