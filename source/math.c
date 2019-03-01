@@ -7,7 +7,12 @@
 #include "L1.h"
 
 bool grounded = false;
+int seasajusted = 0;
 float Vmomajust = 0, Vmomentum = 0, ajustpY = 0, ajustoY = 0, Hmomentum = 0, ajustpX = 0, ajustoX = 0;
+
+//Code for HmomCalc
+float acc[4] = {1, 0.6f, 0.5f, 0.3f}; //spring acceleration, summer acceleration, fall acceleration, winter acceleration.
+float dec[4] = {2, 2.8f, 2.4f, 3.75f}; //max speed spring, summer, fall, winter.
 
 int IsInsideRange(int location, int difference, int referencepoint){
 	int result = 0;
@@ -25,12 +30,21 @@ int IsInsideBox(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh,
 int boxcoll(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh, int LocX, int LocY){
 		int result = 0;
 		if (IsInsideBox(topleftX, topleftY, boxhorzlength, boxvertlengh, LocX, LocY) == 1){
-			if (IsInsideRange(LocY + 40, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) grounded = true;
-			else if (IsInsideRange(LocY + 39, 10, topleftY) == 1) grounded = true, ajustpY = ajustpY - 1;
+			if (IsInsideRange(LocY + 40, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1){
+			grounded = true;
+			if (IsInsideRange(LocY + 37, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) ajustpY = ajustpY - 1; }
 			//if (IsInsideRange(LocY + 35, 10, topleftY) == 1) result = 7;  //up
-			else if (IsInsideRange(LocX, 5, topleftX + boxhorzlength - 4) == 1) ajustpX = ajustpX + 1, Hmomentum = 0; //right
+			else if (IsInsideRange(LocX, 5, topleftX + boxhorzlength - 4) == 1){
+				ajustpX = ajustpX + acc[seasajusted];
+				Hmomentum = 0;
+				//right bounding box
+			} 
 			else if (IsInsideRange(LocY, 10, topleftY + boxvertlengh - 10) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) Vmomentum = 0; //down
-			else if (IsInsideRange(LocX + 20, 5, topleftX) == 1) ajustpX = ajustpX - 1, Hmomentum = 0; //left 
+			else if (IsInsideRange(LocX + 20, 5, topleftX) == 1){
+				ajustpX = ajustpX - acc[seasajusted];
+				Hmomentum = 0;
+				//left bounding box 
+			}
 			else ajustpY = ajustpY - 5;
 		}
 		return result;
@@ -84,9 +98,7 @@ float calcHmomentum(float locX, float offsetX, int season){
     	ajustoX = ajustoX + Hmomentum;
     }
 
-    int seasajusted = season - 1;
-    float acc[4] = {1, 0.6f, 0.5f, 0.3f}; //spring acceleration, summer acceleration, fall acceleration, winter acceleration.
-    float dec[4] = {2, 2.8f, 2.4f, 3.75f}; //max speed spring, summer, fall, winter.
+    seasajusted = season - 1;
     bool LRpress = false;
 
     if (keysmove(1) == 3 || keysmove(1) == 2 || keysmove(1) == 4) Hmomentum = Hmomentum + acc[seasajusted], LRpress = true;
