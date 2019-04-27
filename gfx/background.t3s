@@ -1,0 +1,5 @@
+--atlas -f rgba8888 -z auto
+
+devback.png
+smwback.png
+fadetext.png

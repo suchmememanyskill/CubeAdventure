@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "math.h"
-#include "L1.h"
+#include "loadlevel.h"
 #include <citro3d.h>
 #include <citro2d.h>
 #include <unistd.h>
@@ -11,38 +11,40 @@
 #include "mainmenu.h"
 #include "math.h"
 #include "thread.h"
+#include "background.h"
+#include "music.h"
+#include "textures.h"
+#include "graphics.h"
 
-bool makeselection = false, cancelselection = false, inLSelect = false, settings = false, musicT = true, debugT = false;
-int backoffset = 0, selection = 1, seasontimer = 0, scrolloffset = 0, arrowYoffset = 0, temp = 0;
-size_t sprite_ground = sprites_devbox_idx;
-size_t sprite_grass = sprites_devbox_idx;
+bool makeselection = false, cancelselection = false, inLSelect = false, settings = false, firstboot = true;
+int musicT = 1, debugT = 0;
+int backoffset = 0, selection = 1, seasontimer = 0, scrolloffset = 0, arrowYoffset = 0;
+int seasonmenu = 1;
 
 void callset(){
-	if (musicT == true) settingsL1(4);
-	if (musicT == false) settingsL1(3);
-	if (debugT == true) settingsL1(2);
-	if (debugT == false) settingsL1(1);
+	settingsaj(debugT, musicT);
 }
 
 int main(int argc, char **argv)
 {
 	MakeThread();
-	start:
+	romfsInit();
 	gfxInitDefault();
-	consoleInit(GFX_BOTTOM, NULL);
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
     C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
     C2D_Prepare();
-    C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    Init_Text();
+    top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+	u32 backgroundColor = C2D_Color32f(0,0,0,1);
+	consoleInit(GFX_BOTTOM, NULL);
+	printf("\nLoading Textures! Please wait...");
+    texload();
+    consoleInit(GFX_BOTTOM, NULL);
 
-    printf("Hello world, pls no crash");
+
+
     makeselection = false;
 
-    u32 backgroundColor = C2D_Color32f(0,0,0,1);
-    romfsInit();
-    C2D_SpriteSheet spritesheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
-    C2D_SpriteSheet mainmenu = C2D_SpriteSheetLoad("romfs:/gfx/mainmenu.t3x");
-    romfsExit();
 
 
 	while (aptMainLoop())
@@ -85,13 +87,13 @@ int main(int argc, char **argv)
 		}
 
 		if (makeselection == true && inLSelect == true){
-			//C2D_SpriteSheetFree(spritesheet); //important when all of the levels work!
 			if (selection == 1) {
+			makeselection = false;
 			callset();
-			C2D_SpriteSheetFree(spritesheet);
 			consoleInit(GFX_BOTTOM, NULL);
-			startL1();
-			goto start; }
+			loadlevel("romfs:/test.txt");
+			consoleInit(GFX_BOTTOM, NULL);
+			}
 			if (selection == 2) {
 			consoleInit(GFX_BOTTOM, NULL);
 			printf("L2 Not implemented yet. Go yell at meme or something"); }
@@ -110,10 +112,10 @@ int main(int argc, char **argv)
 		}
 
 		if (makeselection == true && settings == true){
-			if (selection == 2 && debugT == true) debugT = false;
-			else if (selection == 2 && debugT == false) debugT = true;
-			if (selection == 3 && musicT == true) musicT = false;
-			else if (selection == 3 && musicT == false) musicT = true; 
+			if (selection == 2 && debugT == 1) debugT = 0;
+			else if (selection == 2 && debugT == 0) debugT = 1;
+			if (selection == 3 && musicT == 1) musicT = 0;
+			else if (selection == 3 && musicT == 0) musicT = 1; 
 		}
 
 
@@ -153,58 +155,62 @@ int main(int argc, char **argv)
 		if (cancelselection) cancelselection = false;
 
 
-    	if (seasontimer > 0 && seasontimer < 200) { sprite_grass = sprites_grasssummer2x1_idx; sprite_ground = sprites_groundsummer2x1_idx; }
-    	if (seasontimer > 200 && seasontimer < 400) { sprite_grass = sprites_grassfall2x1_idx; sprite_ground = sprites_groundfall2x1_idx; }
-    	if (seasontimer > 400 && seasontimer < 600) { sprite_grass = sprites_grasswinter2x1_idx; sprite_ground = sprites_groundwinter2x1_idx; }
-    	if (seasontimer > 600 && seasontimer < 800) { sprite_grass = sprites_grassspring2x1_idx; sprite_ground = sprites_groundspring2x1_idx; }
+    	if (seasontimer > 0 && seasontimer < 200) seasonmenu = 1;
+    	if (seasontimer > 200 && seasontimer < 400) seasonmenu = 2;
+    	if (seasontimer > 400 && seasontimer < 600) seasonmenu = 3;
+    	if (seasontimer > 600 && seasontimer < 800) seasonmenu = 4;
     	if (seasontimer > 800) seasontimer = 0;
     	if (scrolloffset == 100) scrolloffset = 0;
     	if (backoffset == 1767) backoffset = 0;
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     	C2D_SceneBegin(top);
     	C2D_TargetClear(top, backgroundColor);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 0 - (backoffset / 3), 0, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_smwback_idx), 589 - (backoffset / 3), 0, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprites_devblock_idx), 250, 152, 0.5f, NULL, 1, 2);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_grass), 0 - scrolloffset, 190, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_grass), 100 - scrolloffset, 190, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_grass), 200 - scrolloffset, 190, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_grass), 300 - scrolloffset, 190, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_grass), 400 - scrolloffset, 190, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_ground), 0 - scrolloffset, 215, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_ground), 100 - scrolloffset, 215, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_ground), 200 - scrolloffset, 215, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_ground), 300 - scrolloffset, 215, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(spritesheet, sprite_ground), 400 - scrolloffset, 215, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_fade_idx), 0, 0, 0.5f, NULL, 1, 1);
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_title_idx), 20, 20, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(backsmw, 0 - (backoffset / 3), 0, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(backsmw, 589 - (backoffset / 3), 0, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(player, 250, 152, 0.5f, NULL, 1, 2);
+    	C2D_DrawImageAt(getsprite(3, seasonmenu, 0), 0 - scrolloffset, 190, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(3, seasonmenu, 0), 100 - scrolloffset, 190, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(3, seasonmenu, 0), 200 - scrolloffset, 190, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(3, seasonmenu, 0), 300 - scrolloffset, 190, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(3, seasonmenu, 0), 400 - scrolloffset, 190, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(4, seasonmenu, 0), 0 - scrolloffset, 215, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(4, seasonmenu, 0), 100 - scrolloffset, 215, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(4, seasonmenu, 0), 200 - scrolloffset, 215, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(4, seasonmenu, 0), 300 - scrolloffset, 215, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(getsprite(4, seasonmenu, 0), 400 - scrolloffset, 215, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(fadescr, 0, 0, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(titlemenu, 20, 20, 0.5f, NULL, 1, 1);
     	//85, 28
 
-    	C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_main_idx), 20, 45, 0.5f, NULL, 1, 1);
-    	if (inLSelect == false && settings == false) C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_arrow_idx), 105, 45 + arrowYoffset, 0.5f, NULL, 1, 1);
+
+
+    	C2D_DrawImageAt(menutxt, 20, 45, 0.5f, NULL, 1, 1);
+    	if (inLSelect == false && settings == false) C2D_DrawImageAt(menuarr, 105, 45 + arrowYoffset, 0.5f, NULL, 1, 1);
     	if (inLSelect == true){
-    		C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_arrow_idx), 105, 73, 0.5f, NULL, 1, 1);
-    		C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_arrow_idx), 185, 73 + arrowYoffset, 0.5f, NULL, 1, 1);
-    		C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_levels_idx), 120, 73, 0.5f, NULL, 1, 1);
+    		C2D_DrawImageAt(menuarr, 105, 73, 0.5f, NULL, 1, 1);
+    		C2D_DrawImageAt(menuarr, 185, 73 + arrowYoffset, 0.5f, NULL, 1, 1);
+    		C2D_DrawImageAt(menulvltxt, 120, 73, 0.5f, NULL, 1, 1);
     	}
 
     	if (settings == true){
-    		C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_arrow_idx), 105, 87, 0.5f, NULL, 1, 1);
-    		C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_arrow_idx), 168, 87 + arrowYoffset, 0.5f, NULL, 1, 1);
-    		C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_settingimg_idx), 120, 87, 0.5f, NULL, 1, 1);
-    		if (debugT == true) C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_on_idx), 180, 87, 0.5f, NULL, 1, 1);
-    		if (debugT == false) C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_off_idx), 180, 87, 0.5f, NULL, 1, 1);
-    		if (musicT == true) C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_on_idx), 180, 103, 0.5f, NULL, 1, 1);
-    		if (musicT == false) C2D_DrawImageAt(C2D_SpriteSheetGetImage(mainmenu, mainmenu_off_idx), 180, 103, 0.5f, NULL, 1, 1);
+    		C2D_DrawImageAt(menuarr, 105, 87, 0.5f, NULL, 1, 1);
+    		C2D_DrawImageAt(menuarr, 168, 87 + arrowYoffset, 0.5f, NULL, 1, 1);
+    		C2D_DrawImageAt(menuset, 120, 87, 0.5f, NULL, 1, 1);
+    		if (debugT == true) C2D_DrawImageAt(menuon, 180, 87, 0.5f, NULL, 1, 1);
+    		if (debugT == false) C2D_DrawImageAt(menuoff, 180, 87, 0.5f, NULL, 1, 1);
+    		if (musicT == true) C2D_DrawImageAt(menuon, 180, 103, 0.5f, NULL, 1, 1);
+    		if (musicT == false) C2D_DrawImageAt(menuoff, 180, 103, 0.5f, NULL, 1, 1);
     	}
 
     	C3D_FrameEnd(0); 
 
 	}
+	texfree();
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
-	romfsExit();
 	ExitThread();
+	exitSong();
+	romfsExit();
 	return 0;
 }

@@ -1,7 +1,5 @@
 --atlas -f rgba8888 -z auto
-fade.png
 pausecontinue.png
 pausemain.png
 pausemenu.png
 youdied.png
-arrow.png

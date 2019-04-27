@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <3ds.h>
-#include "L1.h"
+#include "loadlevel.h"
 
 bool grounded = false;
 int seasajusted = 0;
@@ -30,31 +30,33 @@ int IsInsideBox(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh,
 int boxcoll(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh, int LocX, int LocY){
 		int result = 0;
 		if (IsInsideBox(topleftX, topleftY, boxhorzlength, boxvertlengh, LocX, LocY) == 1){
-			if (IsInsideRange(LocY + 40, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1){
+			if (IsInsideRange(LocY + 40, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 18, topleftX + 1) == 1){
 			grounded = true;
-			if (IsInsideRange(LocY + 37, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) ajustpY = ajustpY - 1; }
+			if (IsInsideRange(LocY + 39, 10, topleftY) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 18, topleftX + 1) == 1) ajustpY = ajustpY - 1; }
 			//if (IsInsideRange(LocY + 35, 10, topleftY) == 1) result = 7;  //up
-			else if (IsInsideRange(LocX, 5, topleftX + boxhorzlength - 4) == 1){
-				ajustpX = ajustpX + acc[seasajusted];
+			 if (IsInsideRange(LocX, 5, topleftX + boxhorzlength - 5) == 1 && IsInsideRange(LocY + 38, boxvertlengh + 38, topleftY) == 1){
+				ajustpX = ajustpX + (acc[seasajusted] * 2);
 				Hmomentum = 0;
+				if (IsInsideRange(LocX + 2, 3, topleftX + boxhorzlength - 5) == 1 && IsInsideRange(LocY + 38, boxvertlengh + 38, topleftY) == 1) ajustpX = ajustpX + acc[seasajusted];
 				//right bounding box
 			} 
-			else if (IsInsideRange(LocY, 10, topleftY + boxvertlengh - 10) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) Vmomentum = 0; //down
-			else if (IsInsideRange(LocX + 20, 5, topleftX) == 1){
-				ajustpX = ajustpX - acc[seasajusted];
+			if (IsInsideRange(LocY, 10, topleftY + boxvertlengh - 10) == 1 && IsInsideRange(LocX + 20, boxhorzlength + 14, topleftX + 3) == 1) Vmomentum = 0; //down
+			if (IsInsideRange(LocX + 20, 5, topleftX) == 1 && IsInsideRange(LocY + 38, boxvertlengh + 38, topleftY) == 1){
+				ajustpX = ajustpX - (acc[seasajusted] * 2);
 				Hmomentum = 0;
+				if (IsInsideRange(LocX + 18, 3, topleftX) == 1 && IsInsideRange(LocY + 38, boxvertlengh + 38, topleftY) == 1) ajustpX = ajustpX - acc[seasajusted];
 				//left bounding box 
 			}
-			else ajustpY = ajustpY - 5;
+			//else ajustpY = ajustpY - 5;
 		}
 		return result;
 }
 
 
-void ladder(int topleftX, int topleftY, int boxhorzlength, int boxvertlengh, int LocX, int LocY, float offsetY){
-if (IsInsideBox(topleftX, topleftY, boxhorzlength, boxvertlengh, LocX, LocY) != 0){
+void ladder(float topleftX, float topleftY, int boxhorzlength, int boxvertlengh, float LocX, float LocY, float offsetY){
+if (IsInsideBox(topleftX, topleftY, boxhorzlength, boxvertlengh, LocX, LocY) != 0 && IsInsideRange(LocY + 40, boxvertlengh + 40, topleftY) == 1){
 	if (IsInsideBox(topleftX, topleftY - 38, boxhorzlength, 7, LocX, LocY) != 0) grounded = true;
-	else Vmomentum = -0.15f;
+	else if (LocX >= topleftX - boxhorzlength) Vmomentum = -0.15f;
 	if (keysmove(1) == 1) { ajustoY = ajustoY - 2; }
 	if (keysmove(1) == 5 && offsetY < -1) { ajustoY = ajustoY + 2; }
 	else if (keysmove(1) == 5 && offsetY > -1) { ajustpY = ajustpY + 1; }
@@ -64,7 +66,7 @@ if (IsInsideBox(topleftX, topleftY, boxhorzlength, boxvertlengh, LocX, LocY) != 
 float calcVmomentum(float locY, float offsetY, int season, int apress){
 	if (Vmomajust != 0) Vmomentum = Vmomentum + Vmomajust;
 
- 	if (locY < 50 && Vmomentum < 0 ) { ajustpY = ajustpY - Vmomentum; ajustoY = ajustoY + Vmomentum; }
+ 	if (locY < 50 && Vmomentum < 0) { ajustpY = ajustpY - Vmomentum; ajustoY = ajustoY + Vmomentum; }
     else if (locY < 50 && Vmomentum == 0) { ajustpY = ajustpY + 1; ajustoY = ajustoY - 1; }
     if (locY > 160 && offsetY < 0 && Vmomentum > 0) { ajustpY = ajustpY - Vmomentum; ajustoY = ajustoY + Vmomentum; }
 	else if (locY > 160 && offsetY < 0 && Vmomentum == 0) { ajustpY = ajustpY - 1; ajustoY = ajustoY + 1; }
@@ -72,7 +74,7 @@ float calcVmomentum(float locY, float offsetY, int season, int apress){
 	if (grounded == true && apress == 1 && season == 4) Vmomentum = Vmomentum - 3.0f;
     else if (grounded == true && apress == 1 && season == 1) Vmomentum = Vmomentum - 5.0f;
     else if (grounded == true && apress == 1) Vmomentum = Vmomentum - 4.0f;
-    else if ((keysmove(2) == 1 || keysmove(1) == 1 || keysmove(1) == 2 || keysmove(1) == 8) && season == 3 && Vmomentum > 0)  Vmomentum = Vmomentum - 0.12f;
+    else if ((keysmove(2) == 1) && season == 3 && Vmomentum > 0)  Vmomentum = Vmomentum - 0.12f;
 
     if (offsetY > 0) ajustoY = ajustoY - offsetY;
 
@@ -91,13 +93,6 @@ float calcVmomentum(float locY, float offsetY, int season, int apress){
 
 float calcHmomentum(float locX, float offsetX, int season){
 
-	if (locX < 0) ajustoX = ajustoX - locX;
-
-    if ((locX > 270 && Hmomentum > 0) || (locX < 80 && offsetX > 0 && Hmomentum < 0)) { 
-    	ajustpX = ajustpX - Hmomentum; 
-    	ajustoX = ajustoX + Hmomentum;
-    }
-
     seasajusted = season - 1;
     bool LRpress = false;
 
@@ -105,15 +100,22 @@ float calcHmomentum(float locX, float offsetX, int season){
     if (keysmove(1) == 7 || keysmove(1) == 6 || keysmove(1) == 8) Hmomentum = Hmomentum - acc[seasajusted], LRpress = true;
 
     if (LRpress == true){
-    	if (Hmomentum > dec[seasajusted]) Hmomentum = Hmomentum - acc[seasajusted];
-    	if (Hmomentum < (-1 * dec[seasajusted])) Hmomentum = Hmomentum + acc[seasajusted];
-    	if (season == 4 && grounded == false && (Hmomentum > dec[seasajusted] - 0.75f)) Hmomentum = Hmomentum - acc[seasajusted];
-    	if (season == 4 && grounded == false && (Hmomentum < -1 * dec[seasajusted] + 0.75f)) Hmomentum = Hmomentum + acc[seasajusted];
+    	if (Hmomentum > dec[seasajusted]) Hmomentum = dec[seasajusted];
+    	if (Hmomentum < (-1 * dec[seasajusted])) Hmomentum = -1 * dec[seasajusted];
+    	if (grounded == false && (Hmomentum > dec[seasajusted] - (acc[seasajusted] * 0.1))) Hmomentum = dec[seasajusted] - (acc[seasajusted] * 0.1);
+    	if (grounded == false && (Hmomentum < -1 * dec[seasajusted] + (acc[seasajusted] * 0.1))) Hmomentum = -1 * dec[seasajusted] + (acc[seasajusted] * 0.1);
     }
     else {
     	if (Hmomentum > 0.7f) Hmomentum = Hmomentum - 0.5f;
     	if (Hmomentum < -0.7f) Hmomentum = Hmomentum + 0.5f;
     	if (Hmomentum > -0.7f && Hmomentum < 0.7f) Hmomentum = 0;
+    }
+
+    if (locX < 0) ajustpX = ajustpX - locX;
+
+    if ((locX > 270 && Hmomentum > 0) || (locX < 80 && offsetX > 0 && Hmomentum < 0)) { 
+    	ajustpX = ajustpX - Hmomentum; 
+    	ajustoX = ajustoX + Hmomentum;
     }
 
 

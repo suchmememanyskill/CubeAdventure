@@ -1,6 +1,5 @@
 --atlas -f rgba8888 -z auto
 devblock.png
-devback.png
 devbox.png
 devbox2.png
 devbox3.png
@@ -21,7 +20,6 @@ groundsummer.png
 groundsummer2x1.png
 groundwinter.png
 groundwinter2x1.png
-smwback.png
 grasssummerslope.png
 grasswinterslope.png
 grassspringslope.png
@@ -35,3 +33,4 @@ ladder.png
 devboxmissing.png
 orb.png
 endlevel.png
+coin.png

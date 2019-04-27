@@ -1,0 +1,7 @@
+type 1: texturerender (type, textype, locationX, locationY, scaleX, scaleY, 0, 0)
+type 2: boxcoll (type, 0, locationX, locationY, horzlength, vertlength, 0, 0)
+type 3: ladderboxcoll (type, 0, locationX, locationY, horzlength, vertlength, 0, 0)
+type 4: watercoll (type, 0, locationX, locationY, horzlength, vertlength, 0, 0)
+type 10: coin (type, 0, locationX, locationY, 0, 0, 0, 0) (note, will de-render the following block)
+type 30: Set end flag
+type 31: Set end point

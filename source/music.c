@@ -31,7 +31,7 @@ static void readSamples(u8* buf, size_t size)
 
 void startSong(const char* Thing)
 {
-    romfsInit();
+    //romfsInit();
     ndspInited = R_SUCCEEDED(ndspInit());
     if(ndspInited)
     {
@@ -125,7 +125,6 @@ void exitSong(void)
         mpg123_exit();
         ndspExit();
     }
-    romfsExit();
 }
 
 void advance(void)
