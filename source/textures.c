@@ -149,6 +149,8 @@ C2D_Image getsprite(int boxtype, int seasons, int run){
 	if (boxtype == 8) temp = laddertex;
 	if (boxtype == 9) temp = coin;
 	if (boxtype == 10) temp = fadetxt;
+	if (boxtype == 11) temp = escorb;
+	if (boxtype == 12) temp = escflag;
 
 	return temp;
 }

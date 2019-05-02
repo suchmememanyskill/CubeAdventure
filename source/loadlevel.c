@@ -107,7 +107,7 @@ void loadlevel(const char* level){
 
    		if (music == true) RunThread();
 
-   		if (kDown & KEY_X){
+   		if (kDown & KEY_X && debug == true){
    			i = 0;
    			while (i < linesinlevel){
    				printf("%d %d %d %d %d %d %d %d\n", type[i], texture[i], locX[i], locY[i], Optional1[i], Optional2[i], Optional3[i], Optional4[i]);
@@ -145,10 +145,12 @@ void loadlevel(const char* level){
    				if (IsInsideBox(locX[i] - offsetX, locY[i] - offsetY, Optional1[i], Optional2[i], posX, posY) == 1){
    					run = 1;
    					type[i] = -1;
+   					type[i+1] = -1; 
    				}
    			}
 
    			if (type[i] == 31 && run == 1){
+   				if (type[i+1] == -1) type[i+1] = 1;
    				if (IsInsideBox(locX[i] - offsetX, locY[i] - offsetY, Optional1[i], Optional2[i], posX, posY) == 1) quit = true;
    			}
    			i++;
