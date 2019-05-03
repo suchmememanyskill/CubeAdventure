@@ -21,7 +21,7 @@ bool debug = false, music = true, pausegame = false, dead = false, quit = true;
 float offsetX = 0, offsetY = 0;
 float posY = 150, posX = 50;
 int season = 1;
-int linesinlevel = 0;
+int linesinlevel = 0, linesinlevelest = 0;
 int i = 0, temp = 0;
 int temphorz, tempvert, aapress, run = 0;
 int coins = 0;
@@ -51,10 +51,12 @@ void loadlevel(const char* level){
 	printf("Loading music...\n");
 	FILE* file = fopen (level, "r");
 	if (file == NULL) svcBreak(USERBREAK_PANIC);
-	fscanf(file, "%d", &temp);
+	fscanf(file, "%d", &temp); //cleanup this code
 	startSong(musicget(temp));
 	fscanf(file, "%d", &temp);
 	backgroundid = backgroundimg(temp);
+	fscanf(file, "%d", &temp);
+	linesinlevel = temp;
 	
 	while (!feof (file)){
 		fscanf(file, "%d", &temp); 
@@ -62,7 +64,7 @@ void loadlevel(const char* level){
 		//printf("%d %d\n", i, temp);
 	}
 
-	linesinlevel = i / 8;
+	linesinlevelest = i / 8;
 	i = 0;
 	rewind(file);
 
@@ -76,6 +78,7 @@ void loadlevel(const char* level){
 	int Optional4[linesinlevel];
 
 	printf("Loading level...\n");
+	fscanf(file, "%d", &temp);
 	fscanf(file, "%d", &temp);
 	fscanf(file, "%d", &temp);
 	while (!feof (file)){
@@ -113,7 +116,7 @@ void loadlevel(const char* level){
    				printf("%d %d %d %d %d %d %d %d\n", type[i], texture[i], locX[i], locY[i], Optional1[i], Optional2[i], Optional3[i], Optional4[i]);
    				i++;
    			}
-
+   			printf("\n%d %d", linesinlevel, linesinlevelest);
    		}
 
    		posX = posX + calcHmomentum(posX, offsetX, season);
@@ -153,6 +156,9 @@ void loadlevel(const char* level){
    				if (type[i+1] == -1) type[i+1] = 1;
    				if (IsInsideBox(locX[i] - offsetX, locY[i] - offsetY, Optional1[i], Optional2[i], posX, posY) == 1) quit = true;
    			}
+   			if (type[i] == 32 && run == 1){
+   				boxcoll(locX[i] - offsetX, locY[i] - offsetY, Optional1[i], Optional2[i], posX, posY);
+   			}
    			i++;
    		}
 
@@ -168,7 +174,7 @@ void loadlevel(const char* level){
     	C2D_SceneBegin(top);
     	C2D_TargetClear(top, backgroundColor);
 
-    	C2D_DrawImageAt(backgroundid, 0 - temphorz, 0, 0.5f, NULL, 1, 1);
+    	C2D_DrawImageAt(backgroundid, temphorz / -3, 0, 0.5f, NULL, 1, 1);
 
     	C2D_DrawImageAt(player, posX, posY, 0.5f, NULL, 1, 2);
 
@@ -197,9 +203,46 @@ void loadlevel(const char* level){
 
 		C3D_FrameEnd(0);
 
-		if (quit == true) break;
+		if (kDown & KEY_START) pausegame = true;
 
-		if (kDown & KEY_START) break;
+		while (pausegame == true){
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //cleanup this code
+    	C2D_SceneBegin(top);
+    	C2D_TargetClear(top, backgroundColor);
+
+    	C2D_DrawImageAt(backgroundid, temphorz / -3, 0, 0.5f, NULL, 1, 1);
+
+    	C2D_DrawImageAt(player, posX, posY, 0.5f, NULL, 1, 2);
+
+    	i = 0;
+		while(i < linesinlevel){
+
+			if (type[i] == 1){
+				if (locX[i] - offsetX < 500 && locX[i] - offsetX > -100){
+				C2D_DrawImageAt(getsprite(texture[i], season, run), locX[i] - offsetX, locY[i] - offsetY, 0.5f, NULL, Optional1[i], Optional2[i]);
+				} 
+			}
+			i++;
+		}
+
+		C2D_DrawImageAt(fadescr, 0, 0, 0.5f, NULL, 1, 1);
+
+		C3D_FrameEnd(0);
+
+		hidScanInput();
+		u32 kDown = hidKeysDown();
+
+		if (kDown & KEY_B){
+			pausegame = false;
+		} 
+		if (kDown & KEY_START){
+			quit = true;
+			pausegame = false;
+		}
+
+		}
+
+		if (quit == true) break;
 	}
 }
 
